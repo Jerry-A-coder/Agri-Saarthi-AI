@@ -1,0 +1,11 @@
+{
+  "name": "AgriSaarthi AI",
+  "description": "AI-Based Digital Query Support, Advisory, Disease Diagnosis and Agricultural Intermediary Facilitation Platform connecting farmers with warehouses, soil labs, schemes, buyers, and markets.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

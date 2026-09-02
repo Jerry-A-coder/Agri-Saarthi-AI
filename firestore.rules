@@ -1,0 +1,221 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Reusable Global Security Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'admin.agrisaarthi@nic.in' ||
+        request.auth.token.email == 'jerrygodwin04@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Default Deny Catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 1. Users Collection
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && request.auth.uid == userId
+        && incoming().keys().hasAll(['id', 'email', 'name', 'role', 'language', 'status'])
+        && incoming().id == userId
+        && incoming().name is string && incoming().name.size() <= 128
+        && incoming().email is string && incoming().email.size() <= 128
+        && incoming().role in ['farmer', 'provider', 'admin', 'public'];
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin())
+        && incoming().id == existing().id;
+      allow delete: if isAdmin();
+    }
+
+    // 2. Farmer Profiles
+    match /farmer_profiles/{profileId} {
+      allow get: if isSignedIn() && (resource.data.user_id == request.auth.uid || isAdmin());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && (incoming().user_id == request.auth.uid || isAdmin())
+        && isValidId(profileId);
+      allow update: if isSignedIn() && (existing().user_id == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 3. Provider Profiles
+    match /provider_profiles/{profileId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && (incoming().user_id == request.auth.uid || isAdmin())
+        && isValidId(profileId);
+      allow update: if isSignedIn() && (existing().user_id == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 4. Farms
+    match /farms/{farmId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && (incoming().farmer_id == request.auth.uid || isAdmin())
+        && isValidId(farmId);
+      allow update: if isSignedIn() && (existing().farmer_id == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (existing().farmer_id == request.auth.uid || isAdmin());
+    }
+
+    // 5. Fields
+    match /fields/{fieldId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(fieldId);
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn() || isAdmin();
+    }
+
+    // 6. Plant Scans
+    match /plant_scans/{scanId} {
+      allow get: if isSignedIn() && (resource.data.farmer_id == request.auth.uid || isAdmin());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && (incoming().farmer_id == request.auth.uid || isAdmin())
+        && isValidId(scanId)
+        && incoming().crop_name is string && incoming().crop_name.size() <= 64
+        && incoming().confidence is number;
+      allow update: if isSignedIn() && (existing().farmer_id == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 7. Warehouses
+    match /warehouses/{warehouseId} {
+      allow get, list: if true; // Publicly searchable for farmers
+      allow create: if isSignedIn() && isValidId(warehouseId)
+        && incoming().name is string && incoming().name.size() <= 128
+        && incoming().total_capacity_kg is number;
+      allow update: if isSignedIn() && (existing().provider_id == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 8. Warehouse Bookings
+    match /warehouse_bookings/{bookingId} {
+      allow get: if isSignedIn() && (resource.data.farmer_id == request.auth.uid || isAdmin());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(bookingId)
+        && incoming().farmer_id == request.auth.uid
+        && incoming().quantity_kg is number;
+      allow update: if isSignedIn() && (existing().farmer_id == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 9. Soil Labs
+    match /soil_labs/{labId} {
+      allow get, list: if true; // Publicly discoverable by farmers
+      allow create: if isAdmin() || (isSignedIn() && isValidId(labId));
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 10. Soil Tests
+    match /soil_tests/{testId} {
+      allow get: if isSignedIn() && (resource.data.farmer_id == request.auth.uid || isAdmin());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(testId);
+      allow update: if isSignedIn() && (existing().farmer_id == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 11. Soil Test Requests
+    match /soil_test_requests/{requestId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(requestId)
+        && (incoming().farmer_id == request.auth.uid || isAdmin());
+      allow update: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // 12. Crop Rotation Plans
+    match /crop_rotations/{planId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && isValidId(planId);
+      allow update: if isSignedIn() || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 13. Government Schemes
+    match /government_schemes/{schemeId} {
+      allow get, list: if true; // Available for all farmers to view
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 14. Scheme Applications
+    match /scheme_applications/{applicationId} {
+      allow get: if isSignedIn() && (resource.data.farmer_id == request.auth.uid || isAdmin());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(applicationId)
+        && (incoming().farmer_id == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (existing().farmer_id == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 15. Market Prices
+    match /market_prices/{priceId} {
+      allow get, list: if true; // Public commodity prices
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 16. Buyers
+    match /buyers/{buyerId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && isValidId(buyerId);
+      allow update: if isSignedIn() && (existing().buyer_id == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 17. Crop Listings
+    match /crop_listings/{listingId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && isValidId(listingId)
+        && (incoming().farmer_id == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && (existing().farmer_id == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (existing().farmer_id == request.auth.uid || isAdmin());
+    }
+
+    // 18. Notifications
+    match /notifications/{notificationId} {
+      allow get, list: if isSignedIn() && (resource.data.user_id == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(notificationId);
+      allow update: if isSignedIn() && (existing().user_id == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (existing().user_id == request.auth.uid || isAdmin());
+    }
+
+    // 19. Admin Inquiries
+    match /inquiries/{inquiryId} {
+      allow get, list: if isSignedIn() && (resource.data.sender_id == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(inquiryId);
+      allow update: if isSignedIn() && (existing().sender_id == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 20. Audit Logs
+    match /audit_logs/{logId} {
+      allow get, list: if isAdmin();
+      allow create: if isSignedIn() && isValidId(logId);
+      allow update, delete: if false; // Immutable audit log
+    }
+  }
+}

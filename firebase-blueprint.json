@@ -1,0 +1,467 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Registered user profile on AgriSaarthi platform",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "phone": { "type": "string", "maxLength": 32 },
+        "role": { "type": "string", "enum": ["farmer", "provider", "admin", "public"] },
+        "language": { "type": "string", "maxLength": 10 },
+        "avatar_url": { "type": "string", "maxLength": 512 },
+        "created_at": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "enum": ["active", "suspended", "pending"] }
+      },
+      "required": ["id", "email", "name", "role", "language", "status"]
+    },
+    "FarmerProfile": {
+      "title": "FarmerProfile",
+      "description": "Extended agricultural profile for farmers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "user_id": { "type": "string", "maxLength": 128 },
+        "farmer_id_code": { "type": "string", "maxLength": 64 },
+        "father_or_spouse_name": { "type": "string", "maxLength": 128 },
+        "village": { "type": "string", "maxLength": 128 },
+        "taluk": { "type": "string", "maxLength": 128 },
+        "district": { "type": "string", "maxLength": 128 },
+        "state": { "type": "string", "maxLength": 128 },
+        "pincode": { "type": "string", "maxLength": 16 },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "total_land_acres": { "type": "number" },
+        "primary_crops": { "type": "array" },
+        "soil_type_primary": { "type": "string", "maxLength": 64 },
+        "irrigation_source": { "type": "string", "maxLength": 64 },
+        "kisan_credit_card": { "type": "boolean" },
+        "pm_kisan_registered": { "type": "boolean" }
+      },
+      "required": ["id", "user_id", "village", "district", "state", "pincode", "total_land_acres"]
+    },
+    "ProviderProfile": {
+      "title": "ProviderProfile",
+      "description": "Service provider profile for warehouse operators, soil labs, buyers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "user_id": { "type": "string", "maxLength": 128 },
+        "company_name": { "type": "string", "maxLength": 128 },
+        "business_type": { "type": "string", "enum": ["warehouse_operator", "soil_lab", "fpo", "buyer", "equipment"] },
+        "gst_number": { "type": "string", "maxLength": 32 },
+        "license_number": { "type": "string", "maxLength": 64 },
+        "verified": { "type": "boolean" },
+        "phone": { "type": "string", "maxLength": 32 },
+        "district": { "type": "string", "maxLength": 128 },
+        "state": { "type": "string", "maxLength": 128 }
+      },
+      "required": ["id", "user_id", "company_name", "business_type", "phone", "district", "state"]
+    },
+    "Farm": {
+      "title": "Farm",
+      "description": "Registered land holding of a farmer",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "farmer_id": { "type": "string", "maxLength": 128 },
+        "farm_name": { "type": "string", "maxLength": 128 },
+        "total_area_acres": { "type": "number" },
+        "survey_number": { "type": "string", "maxLength": 64 },
+        "village": { "type": "string", "maxLength": 128 },
+        "district": { "type": "string", "maxLength": 128 },
+        "state": { "type": "string", "maxLength": 128 },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "water_source": { "type": "string", "maxLength": 64 },
+        "organic_certified": { "type": "boolean" },
+        "created_at": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "farmer_id", "farm_name", "total_area_acres", "village", "district", "state"]
+    },
+    "Field": {
+      "title": "Field",
+      "description": "Specific parcel within a farm",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "farm_id": { "type": "string", "maxLength": 128 },
+        "field_name": { "type": "string", "maxLength": 128 },
+        "area_acres": { "type": "number" },
+        "current_crop": { "type": "string", "maxLength": 64 },
+        "soil_type": { "type": "string", "maxLength": 64 },
+        "irrigation_type": { "type": "string", "maxLength": 64 },
+        "current_health_status": { "type": "string", "enum": ["healthy", "stressed", "diseased", "harvested", "fallow"] }
+      },
+      "required": ["id", "farm_id", "field_name", "area_acres", "soil_type", "current_health_status"]
+    },
+    "PlantScan": {
+      "title": "PlantScan",
+      "description": "AI-powered vision diagnostic scan for crops",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "farmer_id": { "type": "string", "maxLength": 128 },
+        "crop_name": { "type": "string", "maxLength": 64 },
+        "plant_part": { "type": "string", "maxLength": 32 },
+        "image_url": { "type": "string", "maxLength": 1024 },
+        "predicted_issue": { "type": "string", "maxLength": 128 },
+        "prediction_type": { "type": "string", "maxLength": 64 },
+        "confidence": { "type": "number" },
+        "model_name": { "type": "string", "maxLength": 64 },
+        "model_version": { "type": "string", "maxLength": 32 },
+        "farmer_explanation": { "type": "string", "maxLength": 2048 },
+        "status": { "type": "string", "enum": ["COMPLETED", "REQUIRES_EXPERT", "INCONCLUSIVE"] },
+        "created_at": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "farmer_id", "crop_name", "predicted_issue", "confidence", "status", "created_at"]
+    },
+    "Warehouse": {
+      "title": "Warehouse",
+      "description": "Verified storage facility listing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "provider_id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "operator_type": { "type": "string", "enum": ["CWC", "SWC", "Private", "Cooperative", "FPO"] },
+        "address": { "type": "string", "maxLength": 256 },
+        "district": { "type": "string", "maxLength": 128 },
+        "state": { "type": "string", "maxLength": 128 },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "total_capacity_kg": { "type": "number" },
+        "available_capacity_kg": { "type": "number" },
+        "rate_inr": { "type": "number" },
+        "verified": { "type": "boolean" },
+        "contact_phone": { "type": "string", "maxLength": 32 }
+      },
+      "required": ["id", "provider_id", "name", "operator_type", "district", "state", "total_capacity_kg", "rate_inr"]
+    },
+    "WarehouseBooking": {
+      "title": "WarehouseBooking",
+      "description": "Storage reservation made by a farmer",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "booking_code": { "type": "string", "maxLength": 64 },
+        "warehouse_id": { "type": "string", "maxLength": 128 },
+        "warehouse_name": { "type": "string", "maxLength": 128 },
+        "farmer_id": { "type": "string", "maxLength": 128 },
+        "farmer_name": { "type": "string", "maxLength": 128 },
+        "farmer_phone": { "type": "string", "maxLength": 32 },
+        "crop_name": { "type": "string", "maxLength": 64 },
+        "quantity_kg": { "type": "number" },
+        "start_date": { "type": "string", "maxLength": 64 },
+        "expected_duration_days": { "type": "number" },
+        "estimated_cost_inr": { "type": "number" },
+        "status": { "type": "string", "enum": ["PENDING", "ACCEPTED", "REJECTED", "ACTIVE", "COMPLETED", "CANCELLED", "EXPIRED"] },
+        "created_at": { "type": "string", "maxLength": 64 },
+        "updated_at": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "warehouse_id", "farmer_id", "crop_name", "quantity_kg", "start_date", "status"]
+    },
+    "SoilLab": {
+      "title": "SoilLab",
+      "description": "Government or certified private soil testing lab",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "organization": { "type": "string", "maxLength": 128 },
+        "location": { "type": "string", "maxLength": 128 },
+        "district": { "type": "string", "maxLength": 128 },
+        "state": { "type": "string", "maxLength": 128 },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "contact_phone": { "type": "string", "maxLength": 32 },
+        "accreditation": { "type": "string", "maxLength": 64 },
+        "test_fee_inr": { "type": "number" },
+        "turnaround_days": { "type": "number" },
+        "verified": { "type": "boolean" }
+      },
+      "required": ["id", "name", "organization", "district", "state", "test_fee_inr"]
+    },
+    "SoilTest": {
+      "title": "SoilTest",
+      "description": "Soil health card parameter test report",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "field_id": { "type": "string", "maxLength": 128 },
+        "farmer_id": { "type": "string", "maxLength": 128 },
+        "sample_code": { "type": "string", "maxLength": 64 },
+        "test_date": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "enum": ["PENDING_COLLECTION", "PROCESSING", "COMPLETED", "REJECTED"] },
+        "ph": { "type": "number" },
+        "organic_carbon_percent": { "type": "number" },
+        "nitrogen_kg_ha": { "type": "number" },
+        "nitrogen_status": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "phosphorus_kg_ha": { "type": "number" },
+        "phosphorus_status": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "potassium_kg_ha": { "type": "number" },
+        "potassium_status": { "type": "string", "enum": ["Low", "Medium", "High"] }
+      },
+      "required": ["id", "field_id", "farmer_id", "sample_code", "status"]
+    },
+    "SoilTestRequest": {
+      "title": "SoilTestRequest",
+      "description": "Farmer service request for soil testing pickup",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "farmer_id": { "type": "string", "maxLength": 128 },
+        "farmer_name": { "type": "string", "maxLength": 128 },
+        "farmer_phone": { "type": "string", "maxLength": 32 },
+        "lab_id": { "type": "string", "maxLength": 128 },
+        "field_id": { "type": "string", "maxLength": 128 },
+        "sample_collection_type": { "type": "string", "enum": ["lab_pickup", "farmer_drop", "courier"] },
+        "pickup_address": { "type": "string", "maxLength": 256 },
+        "selected_package": { "type": "string", "maxLength": 128 },
+        "estimated_cost": { "type": "number" },
+        "status": { "type": "string", "enum": ["REQUESTED", "SAMPLE_COLLECTED", "IN_TESTING", "REPORT_READY"] },
+        "created_at": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "farmer_id", "lab_id", "field_id", "status", "created_at"]
+    },
+    "CropRotationPlan": {
+      "title": "CropRotationPlan",
+      "description": "Multi-season succession crop rotation plan",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "field_id": { "type": "string", "maxLength": 128 },
+        "farm_id": { "type": "string", "maxLength": 128 },
+        "plan_name": { "type": "string", "maxLength": 128 },
+        "soil_type_target": { "type": "string", "maxLength": 64 },
+        "seasons_cycle_count": { "type": "number" },
+        "rationale": { "type": "string", "maxLength": 2048 },
+        "created_at": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "plan_name", "created_at"]
+    },
+    "GovernmentScheme": {
+      "title": "GovernmentScheme",
+      "description": "Central & state agricultural subsidy or welfare scheme",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "scheme_code": { "type": "string", "maxLength": 64 },
+        "title": { "type": "string", "maxLength": 128 },
+        "sponsor": { "type": "string", "maxLength": 128 },
+        "category": { "type": "string", "maxLength": 64 },
+        "benefit_summary": { "type": "string", "maxLength": 1024 },
+        "state_applicable": { "type": "string", "maxLength": 128 },
+        "application_url": { "type": "string", "maxLength": 512 },
+        "is_active": { "type": "boolean" }
+      },
+      "required": ["id", "scheme_code", "title", "sponsor", "category", "is_active"]
+    },
+    "SchemeApplication": {
+      "title": "SchemeApplication",
+      "description": "Application filed by a farmer for government scheme",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "application_number": { "type": "string", "maxLength": 64 },
+        "scheme_id": { "type": "string", "maxLength": 128 },
+        "scheme_title": { "type": "string", "maxLength": 128 },
+        "farmer_id": { "type": "string", "maxLength": 128 },
+        "farmer_name": { "type": "string", "maxLength": 128 },
+        "land_area_acres": { "type": "number" },
+        "status": { "type": "string", "enum": ["DRAFT", "SUBMITTED", "UNDER_SCRUTINY", "FIELD_VERIFICATION", "APPROVED", "DISBURSED", "REJECTED"] },
+        "submitted_date": { "type": "string", "maxLength": 64 },
+        "updated_date": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "application_number", "scheme_id", "farmer_id", "status"]
+    },
+    "MarketPrice": {
+      "title": "MarketPrice",
+      "description": "Daily APMC mandi commodity price report",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "mandi_name": { "type": "string", "maxLength": 128 },
+        "district": { "type": "string", "maxLength": 128 },
+        "state": { "type": "string", "maxLength": 128 },
+        "commodity": { "type": "string", "maxLength": 64 },
+        "variety": { "type": "string", "maxLength": 64 },
+        "min_price_per_quintal": { "type": "number" },
+        "modal_price_per_quintal": { "type": "number" },
+        "max_price_per_quintal": { "type": "number" },
+        "price_trend": { "type": "string", "enum": ["up", "down", "stable"] },
+        "report_date": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "mandi_name", "district", "commodity", "modal_price_per_quintal", "report_date"]
+    },
+    "BuyerListing": {
+      "title": "BuyerListing",
+      "description": "Bulk procurement requirement by FPOs or processors",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "buyer_id": { "type": "string", "maxLength": 128 },
+        "company_name": { "type": "string", "maxLength": 128 },
+        "buyer_type": { "type": "string", "maxLength": 64 },
+        "commodity_required": { "type": "string", "maxLength": 64 },
+        "required_quantity_tonnes": { "type": "number" },
+        "offered_price_per_quintal": { "type": "number" },
+        "delivery_location": { "type": "string", "maxLength": 128 },
+        "verified_buyer": { "type": "boolean" },
+        "created_at": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "buyer_id", "company_name", "commodity_required", "offered_price_per_quintal"]
+    },
+    "CropListing": {
+      "title": "CropListing",
+      "description": "Farmer direct harvest offer for buyers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "farmer_id": { "type": "string", "maxLength": 128 },
+        "farmer_name": { "type": "string", "maxLength": 128 },
+        "crop_name": { "type": "string", "maxLength": 64 },
+        "quantity_quintals": { "type": "number" },
+        "expected_price_per_quintal": { "type": "number" },
+        "harvest_date": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "enum": ["ACTIVE", "SOLD", "NEGOTIATING"] },
+        "created_at": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "farmer_id", "crop_name", "quantity_quintals", "expected_price_per_quintal", "status"]
+    },
+    "NotificationItem": {
+      "title": "NotificationItem",
+      "description": "User notification alert",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "user_id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 128 },
+        "message": { "type": "string", "maxLength": 512 },
+        "type": { "type": "string", "maxLength": 32 },
+        "is_read": { "type": "boolean" },
+        "created_at": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "user_id", "title", "message", "is_read", "created_at"]
+    },
+    "AdminInquiry": {
+      "title": "AdminInquiry",
+      "description": "Helpdesk dispute or inquiry ticket",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ticket_number": { "type": "string", "maxLength": 64 },
+        "sender_id": { "type": "string", "maxLength": 128 },
+        "sender_name": { "type": "string", "maxLength": 128 },
+        "sender_role": { "type": "string", "enum": ["farmer", "provider"] },
+        "subject": { "type": "string", "maxLength": 256 },
+        "category": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "enum": ["OPEN", "IN_REVIEW", "RESOLVED", "CLOSED"] },
+        "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
+        "created_at": { "type": "string", "maxLength": 64 },
+        "updated_at": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "ticket_number", "sender_id", "subject", "status", "priority", "created_at"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "System and user action audit trail",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "user_id": { "type": "string", "maxLength": 128 },
+        "user_email": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string", "maxLength": 32 },
+        "action": { "type": "string", "maxLength": 64 },
+        "entity": { "type": "string", "maxLength": 64 },
+        "entity_id": { "type": "string", "maxLength": 128 },
+        "timestamp": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "user_id", "action", "entity", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User account records"
+    },
+    "/farmer_profiles/{profileId}": {
+      "schema": "FarmerProfile",
+      "description": "Farmer agricultural profiles"
+    },
+    "/provider_profiles/{profileId}": {
+      "schema": "ProviderProfile",
+      "description": "Service provider profiles"
+    },
+    "/farms/{farmId}": {
+      "schema": "Farm",
+      "description": "Farm land records"
+    },
+    "/fields/{fieldId}": {
+      "schema": "Field",
+      "description": "Field parcels"
+    },
+    "/plant_scans/{scanId}": {
+      "schema": "PlantScan",
+      "description": "Crop plant disease scans and diagnoses"
+    },
+    "/warehouses/{warehouseId}": {
+      "schema": "Warehouse",
+      "description": "Warehouse listings and storage facilities"
+    },
+    "/warehouse_bookings/{bookingId}": {
+      "schema": "WarehouseBooking",
+      "description": "Storage reservation bookings"
+    },
+    "/soil_labs/{labId}": {
+      "schema": "SoilLab",
+      "description": "Soil testing laboratories"
+    },
+    "/soil_tests/{testId}": {
+      "schema": "SoilTest",
+      "description": "Soil testing health reports"
+    },
+    "/soil_test_requests/{requestId}": {
+      "schema": "SoilTestRequest",
+      "description": "Soil sample collection requests"
+    },
+    "/crop_rotations/{planId}": {
+      "schema": "CropRotationPlan",
+      "description": "Intelligent crop rotation succession plans"
+    },
+    "/government_schemes/{schemeId}": {
+      "schema": "GovernmentScheme",
+      "description": "Government welfare and subsidy schemes"
+    },
+    "/scheme_applications/{applicationId}": {
+      "schema": "SchemeApplication",
+      "description": "Farmer government scheme applications"
+    },
+    "/market_prices/{priceId}": {
+      "schema": "MarketPrice",
+      "description": "APMC Mandi market price records"
+    },
+    "/buyers/{buyerId}": {
+      "schema": "BuyerListing",
+      "description": "Buyer commodity purchase listings"
+    },
+    "/crop_listings/{listingId}": {
+      "schema": "CropListing",
+      "description": "Farmer crop listings for direct trade"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "NotificationItem",
+      "description": "User notification alerts"
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "AdminInquiry",
+      "description": "Helpdesk inquiries and disputes"
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "System audit logs"
+    }
+  }
+}
